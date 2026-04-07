@@ -6,6 +6,7 @@ export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDisclosure, setShowDisclosure] = useState(false);
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -76,6 +77,7 @@ export function useChat() {
 
             case "agent_response":
               setStatus(null);
+              if (data.requires_disclosure) setShowDisclosure(true);
               if (data.id !== currentMessageId) {
                 currentMessageId = data.id;
                 setMessages((prev) => [
@@ -130,5 +132,5 @@ export function useChat() {
     }
   }, [isLoading, messages]);
 
-  return { messages, status, isLoading, sendMessage };
+  return { messages, status, isLoading, showDisclosure, sendMessage };
 }

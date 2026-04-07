@@ -19,6 +19,11 @@ const toolStatusMessages: Record<string, string> = {
   "mcp__loan-product-assistant__calculate_monthly_payment": "Calculating monthly payment...",
 };
 
+const disclosureTools = new Set([
+  "mcp__loan-product-assistant__query_loan_products",
+  "mcp__loan-product-assistant__calculate_monthly_payment",
+]);
+
 type SSEEvent = "agent_status" | "agent_response" | "error" | "done";
 
 function writeSSE(res: Response, event: SSEEvent, data: unknown): void {
@@ -36,6 +41,7 @@ export async function runAgent(
   const toolServer = createToolServer(contractorId);
   let sentDone = false;
   let currentMessageId: string | null = null;
+  let requiresDisclosure = false;
 
   try {
     for await (const message of query({
@@ -61,6 +67,9 @@ export async function runAgent(
             const statusMsg =
               toolStatusMessages[block.name] ?? `Running ${block.name}...`;
             writeSSE(res, "agent_status", { message: statusMsg });
+            if (disclosureTools.has(block.name)) {
+              requiresDisclosure = true;
+            }
           }
         }
       }
@@ -79,6 +88,7 @@ export async function runAgent(
             writeSSE(res, "agent_response", {
               id: currentMessageId,
               text: delta.text,
+              requires_disclosure: requiresDisclosure,
             });
           }
         }

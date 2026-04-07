@@ -3,7 +3,7 @@ import { useChat } from "../hooks/useChat";
 import { ChatMessage } from "./ChatMessage";
 
 export function ChatDrawer({ onClose }: { onClose: () => void }) {
-  const { messages, status, isLoading, sendMessage } = useChat();
+  const { messages, status, isLoading, showDisclosure, sendMessage } = useChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +38,13 @@ export function ChatDrawer({ onClose }: { onClose: () => void }) {
             &times;
           </button>
         </div>
+
+        {/* Disclosure Banner */}
+        {showDisclosure && (
+          <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 text-xs text-amber-800 leading-snug">
+            <strong>Disclosure:</strong> Payment estimates are for illustrative purposes only and are based on estimated APR ranges. Actual loan terms, rates, and monthly payments will vary based on creditworthiness and other factors. This is not a loan offer or commitment to lend.
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4">
