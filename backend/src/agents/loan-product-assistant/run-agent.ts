@@ -23,6 +23,7 @@ export async function runAgent(
 
   const toolServer = createToolServer(contractorId);
   let sentDone = false;
+  let currentMessageId: string | null = null;
 
   try {
     for await (const message of query({
@@ -50,10 +51,19 @@ export async function runAgent(
 
       if (message.type === "stream_event") {
         const event = message.event as Record<string, unknown>;
+        if (event.type === "message_start") {
+          const msg = event.message as Record<string, unknown>;
+          if (typeof msg?.id === "string") {
+            currentMessageId = msg.id;
+          }
+        }
         if (event.type === "content_block_delta") {
           const delta = event.delta as Record<string, unknown>;
           if (delta.type === "text_delta" && typeof delta.text === "string") {
-            writeSSE(res, "agent_response", { text: delta.text });
+            writeSSE(res, "agent_response", {
+              id: currentMessageId,
+              text: delta.text,
+            });
           }
         }
       }

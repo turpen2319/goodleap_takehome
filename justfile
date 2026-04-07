@@ -1,9 +1,14 @@
 # Spin up all services
-app: backend
+app:
+    docker compose up --build
 
-# Run backend
+# Run backend only
 backend:
     docker compose up --build backend
+
+# Run frontend only
+frontend:
+    docker compose up --build frontend
 
 # Stop all services
 down:
