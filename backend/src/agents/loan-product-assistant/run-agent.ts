@@ -1,6 +1,7 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { createToolServer } from "./tool-server.js";
 import { systemPrompt } from "./prompt.js";
+import { checkCompliance, COMPLIANCE_FALLBACK } from "./compliance.js";
 import { config } from "../../config.js";
 import type { Response } from "express";
 
@@ -20,7 +21,6 @@ const toolStatusMessages: Record<string, string> = {
 };
 
 const disclosureTools = new Set([
-  "mcp__loan-product-assistant__query_loan_products",
   "mcp__loan-product-assistant__calculate_monthly_payment",
 ]);
 
@@ -43,6 +43,10 @@ export async function runAgent(
   let currentMessageId: string | null = null;
   let requiresDisclosure = false;
 
+  // Accumulates the full text of the current assistant message for compliance checking.
+  let responseBuffer = "";
+  const abortController = new AbortController();
+
   try {
     for await (const message of query({
       prompt: userMessage,
@@ -59,6 +63,7 @@ export async function runAgent(
         includePartialMessages: true,
         maxTurns: config.maxAgentTurns,
         persistSession: false,
+        abortController,
       },
     })) {
       if (message.type === "assistant") {
@@ -80,11 +85,31 @@ export async function runAgent(
           const msg = event.message as Record<string, unknown>;
           if (typeof msg?.id === "string") {
             currentMessageId = msg.id;
+            responseBuffer = "";  // set to "you would be approved" to test compliance guardrail
           }
         }
         if (event.type === "content_block_delta") {
           const delta = event.delta as Record<string, unknown>;
           if (delta.type === "text_delta" && typeof delta.text === "string") {
+            responseBuffer += delta.text;
+
+            // Check compliance on the accumulated text
+            if (checkCompliance(responseBuffer)) {
+              console.warn("[agent] compliance guardrail triggered, aborting stream");
+              abortController.abort();
+
+              // Replace the partial response with the fallback
+              writeSSE(res, "agent_response", {
+                id: currentMessageId,
+                text: COMPLIANCE_FALLBACK,
+                requires_disclosure: requiresDisclosure,
+                replaced: true,
+              });
+              writeSSE(res, "done", { subtype: "compliance_fallback" });
+              sentDone = true;
+              break;
+            }
+
             writeSSE(res, "agent_response", {
               id: currentMessageId,
               text: delta.text,
@@ -105,11 +130,19 @@ export async function runAgent(
       }
     }
   } catch (err) {
-    console.error("[agent] error:", err instanceof Error ? err.message : err);
-    if (!sentDone) {
-      const msg = err instanceof Error ? err.message : "Internal server error";
-      writeSSE(res, "error", { message: msg });
-      writeSSE(res, "done", { subtype: "error" });
+    // AbortError is expected when the compliance guardrail fires
+    if (err instanceof Error && err.name === "AbortError") {
+      if (!sentDone) {
+        writeSSE(res, "done", { subtype: "compliance_fallback" });
+        sentDone = true;
+      }
+    } else {
+      console.error("[agent] error:", err instanceof Error ? err.message : err);
+      if (!sentDone) {
+        const msg = err instanceof Error ? err.message : "Internal server error";
+        writeSSE(res, "error", { message: msg });
+        writeSSE(res, "done", { subtype: "error" });
+      }
     }
   }
 }

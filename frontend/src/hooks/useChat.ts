@@ -78,6 +78,19 @@ export function useChat() {
             case "agent_response":
               setStatus(null);
               if (data.requires_disclosure) setShowDisclosure(true);
+
+              // Compliance guardrail: backend replaced the response with a fallback
+              if (data.replaced) {
+                setMessages((prev) => {
+                  const withoutPartial = prev.filter((m) => m.id !== data.id);
+                  return [
+                    ...withoutPartial,
+                    { id: data.id, role: "assistant" as const, content: data.text },
+                  ];
+                });
+                break;
+              }
+
               if (data.id !== currentMessageId) {
                 currentMessageId = data.id;
                 setMessages((prev) => [
