@@ -1,4 +1,5 @@
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { ChatMessage as ChatMessageType } from "../types";
 
 export function ChatMessage({ message }: { message: ChatMessageType }) {
@@ -21,7 +22,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
             : "bg-gray-100 text-gray-800 rounded-bl-md prose prose-sm"
         }`}
       >
-        {isUser ? message.content : <Markdown>{message.content}</Markdown>}
+        {isUser ? message.content : <Markdown remarkPlugins={[remarkGfm]}>{message.content}</Markdown>}
       </div>
     </div>
   );
