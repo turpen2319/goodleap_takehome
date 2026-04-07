@@ -6,6 +6,7 @@ import type { Response } from "express";
 
 const toolStatusMessages: Record<string, string> = {
   "mcp__loan-product-assistant__query_loan_products": "Looking up loan products...",
+  "mcp__loan-product-assistant__calculate_monthly_payment": "Calculating monthly payment...",
 };
 
 type SSEEvent = "agent_status" | "agent_response" | "error" | "done";
@@ -32,7 +33,10 @@ export async function runAgent(
         model: config.model,
         systemPrompt,
         mcpServers: { "loan-product-assistant": toolServer },
-        allowedTools: ["mcp__loan-product-assistant__query_loan_products"],
+        allowedTools: [
+          "mcp__loan-product-assistant__query_loan_products",
+          "mcp__loan-product-assistant__calculate_monthly_payment",
+        ],
         tools: [],
         permissionMode: "dontAsk", // since we're only using known tools, we can skip permission prompts
         includePartialMessages: true,
