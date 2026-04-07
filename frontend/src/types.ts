@@ -7,6 +7,7 @@ export interface LoanProduct {
   maxAmount: number;
   promoDetails?: { periodMonths: number; apr: number };
   description: string;
+  eligibleStates: string[];
 }
 
 export interface ChatMessage {

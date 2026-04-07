@@ -2,11 +2,13 @@ import { config } from "./config.js";
 import express from "express";
 import cors from "cors";
 import threadRoutes from "./routes/llm-threads.js";
+import contractorRoutes from "./routes/contractors.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(threadRoutes);
+app.use(contractorRoutes);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
