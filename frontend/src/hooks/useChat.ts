@@ -16,13 +16,21 @@ export function useChat() {
       content: text.trim(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => {
+      const next = [...prev, userMessage];
+      console.log("[chat] state after user message:", next);
+      return next;
+    });
     setIsLoading(true);
     setStatus(null);
 
     let currentMessageId: string | null = null;
 
     try {
+      const history = messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+
       const response = await fetch(
         `${config.apiBaseUrl}/llm_threads/${config.threadId}/messages`,
         {
@@ -33,7 +41,7 @@ export function useChat() {
             // x-contractor-id is a simple way to identify the "contractor" making the request.
             // Skipping authentication for this prototype.
           },
-          body: JSON.stringify({ message: text.trim() }),
+          body: JSON.stringify({ message: text.trim(), history }),
         },
       );
 
@@ -99,6 +107,10 @@ export function useChat() {
 
             case "done":
               setStatus(null);
+              setMessages((prev) => {
+                console.log("[chat] state after assistant response:", prev);
+                return prev;
+              });
               break;
           }
         }
@@ -116,7 +128,7 @@ export function useChat() {
       setStatus(null);
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, messages]);
 
   return { messages, status, isLoading, sendMessage };
 }

@@ -5,7 +5,7 @@ import { runAgent } from "../agents/loan-product-assistant/run-agent.js";
 const router = Router();
 
 router.post("/llm_threads/:id/messages", async (req: Request, res: Response) => {
-  const { message } = req.body;
+  const { message, history = [] } = req.body;
 
   // Simple way to identify the "contractor" making the request.
   // Skipping authentication for this prototype.
@@ -21,7 +21,7 @@ router.post("/llm_threads/:id/messages", async (req: Request, res: Response) => 
   res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders(); // Send headers immediately to establish SSE connection
 
-  await runAgent(message, contractorId, res);
+  await runAgent(message, contractorId, res, history);
   res.end();
 });
 

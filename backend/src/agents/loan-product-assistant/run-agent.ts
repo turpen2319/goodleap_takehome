@@ -4,6 +4,16 @@ import { systemPrompt } from "./prompt.js";
 import { config } from "../../config.js";
 import type { Response } from "express";
 
+type HistoryMessage = { role: "user" | "assistant"; content: string };
+
+function buildSystemPrompt(history: HistoryMessage[]): string {
+  if (history.length === 0) return systemPrompt;
+  const transcript = history
+    .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+    .join("\n\n");
+  return `${systemPrompt}\n\n## Conversation so far\n${transcript}`;
+}
+
 const toolStatusMessages: Record<string, string> = {
   "mcp__loan-product-assistant__query_loan_products": "Looking up loan products...",
   "mcp__loan-product-assistant__calculate_monthly_payment": "Calculating monthly payment...",
@@ -18,7 +28,8 @@ function writeSSE(res: Response, event: SSEEvent, data: unknown): void {
 export async function runAgent(
   userMessage: string,
   contractorId: string,
-  res: Response
+  res: Response,
+  history: HistoryMessage[]
 ): Promise<void> {
   writeSSE(res, "agent_status", { message: "Thinking..." });
 
@@ -31,7 +42,7 @@ export async function runAgent(
       prompt: userMessage,
       options: {
         model: config.model,
-        systemPrompt,
+        systemPrompt: buildSystemPrompt(history),
         mcpServers: { "loan-product-assistant": toolServer },
         allowedTools: [
           "mcp__loan-product-assistant__query_loan_products",
@@ -41,6 +52,7 @@ export async function runAgent(
         permissionMode: "dontAsk", // since we're only using known tools, we can skip permission prompts
         includePartialMessages: true,
         maxTurns: config.maxAgentTurns,
+        persistSession: false,
       },
     })) {
       if (message.type === "assistant") {
