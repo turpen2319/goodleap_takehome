@@ -1,2 +1,17 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Compact, scrollable tables inside chat messages */
+.chat-prose {
+  overflow-x: auto;
+}
+.chat-prose table {
+  font-size: 0.75rem;
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.chat-prose th,
+.chat-prose td {
+  padding: 0.25rem 0.5rem;
+}

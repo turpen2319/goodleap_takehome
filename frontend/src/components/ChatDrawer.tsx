@@ -6,6 +6,7 @@ export function ChatDrawer({ onClose }: { onClose: () => void }) {
   const { messages, status, isLoading, showDisclosure, sendMessage } = useChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -16,6 +17,7 @@ export function ChatDrawer({ onClose }: { onClose: () => void }) {
     if (!input.trim()) return;
     sendMessage(input);
     setInput("");
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
   return (
@@ -26,8 +28,8 @@ export function ChatDrawer({ onClose }: { onClose: () => void }) {
         onClick={onClose}
       />
 
-      {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl z-50 flex flex-col">
+      {/* Drawer — bottom sheet on mobile, side panel on md+ */}
+      <div className="fixed bottom-0 left-0 right-0 h-1/2 sm:h-[55%] md:h-full md:top-0 md:left-auto md:right-0 md:w-full md:max-w-md bg-white shadow-xl z-50 flex flex-col rounded-t-2xl md:rounded-none">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">AI Assistant</h2>
@@ -67,20 +69,31 @@ export function ChatDrawer({ onClose }: { onClose: () => void }) {
         {/* Input */}
         <form
           onSubmit={handleSubmit}
-          className="border-t border-gray-200 p-3 flex gap-2"
+          className="border-t border-gray-200 p-3 flex gap-2 items-end"
         >
-          <input
-            type="text"
+          <textarea
+            ref={textareaRef}
+            rows={1}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (input.trim() && !isLoading) handleSubmit(e as any);
+              }
+            }}
             placeholder="Type a message..."
             disabled={isLoading}
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none overflow-y-auto"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
           >
             Send
           </button>

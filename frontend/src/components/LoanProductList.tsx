@@ -8,7 +8,7 @@ export function LoanProductList() {
   if (error) return <p className="text-red-500">Failed to load products: {error}</p>;
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
       {products.map((product) => (
         <LoanProductCard key={product.id} product={product} />
       ))}
