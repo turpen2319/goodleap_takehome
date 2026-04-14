@@ -2,13 +2,22 @@ import { useState } from "react";
 import { LoanProductList } from "./components/LoanProductList";
 import { ChatPanel } from "./components/ChatPanel";
 
+const DEFAULT_PANEL_WIDTH = 384;
+
 function App() {
   const [panelOpen, setPanelOpen] = useState(false);
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_PANEL_WIDTH);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-      {/* Main content — add bottom padding on mobile when panel is open so cards aren't hidden under it */}
-      <div className={`flex-1 min-w-0 px-6 py-16 ${panelOpen ? "pb-[47vh] md:pb-16" : ""}`}>
+    <div className="min-h-screen bg-gray-50">
+      {/* Main content — offset by panel width on desktop, bottom padding on mobile */}
+      <div
+        className="px-6 py-16 transition-[margin,padding] duration-200"
+        style={{
+          marginRight: panelOpen && window.innerWidth >= 768 ? panelWidth : 0,
+          paddingBottom: panelOpen && window.innerWidth < 768 ? "47vh" : undefined,
+        }}
+      >
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-10">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -40,9 +49,12 @@ function App() {
         </div>
       </div>
 
-      {/* Chat panel — right side on desktop, bottom on mobile */}
       {panelOpen && (
-        <ChatPanel onClose={() => setPanelOpen(false)} />
+        <ChatPanel
+          onClose={() => setPanelOpen(false)}
+          panelWidth={panelWidth}
+          onWidthChange={setPanelWidth}
+        />
       )}
     </div>
   );
