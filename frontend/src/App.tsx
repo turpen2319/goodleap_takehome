@@ -1,16 +1,39 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { LoanProductList } from "./components/LoanProductList";
 import { ChatPanel } from "./components/ChatPanel";
+import type { LoanProduct } from "./types";
 
 const DEFAULT_PANEL_WIDTH = 384;
+
+export interface ContextProduct {
+  id: string;
+  name: string;
+}
 
 function App() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelWidth, setPanelWidth] = useState(DEFAULT_PANEL_WIDTH);
+  const [contextProducts, setContextProducts] = useState<ContextProduct[]>([]);
+
+  const handleAskAI = useCallback((product: LoanProduct) => {
+    setPanelOpen(true);
+    setContextProducts((prev) => {
+      if (prev.some((p) => p.id === product.id)) return prev;
+      return [...prev, { id: product.id, name: product.name }];
+    });
+  }, []);
+
+  const handleRemoveContext = useCallback((id: string) => {
+    setContextProducts((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  const contextProductIds = useMemo(
+    () => new Set(contextProducts.map((p) => p.id)),
+    [contextProducts],
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Main content — offset by panel width on desktop, bottom padding on mobile */}
       <div
         className="px-6 py-16 transition-[margin,padding] duration-200"
         style={{
@@ -45,7 +68,11 @@ function App() {
               </button>
             )}
           </div>
-          <LoanProductList />
+          <LoanProductList
+            onAskAI={handleAskAI}
+            onRemoveContext={handleRemoveContext}
+            contextProductIds={contextProductIds}
+          />
         </div>
       </div>
 
@@ -54,6 +81,8 @@ function App() {
           onClose={() => setPanelOpen(false)}
           panelWidth={panelWidth}
           onWidthChange={setPanelWidth}
+          contextProducts={contextProducts}
+          onRemoveContext={handleRemoveContext}
         />
       )}
     </div>

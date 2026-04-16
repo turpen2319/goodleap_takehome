@@ -8,13 +8,13 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [showDisclosure, setShowDisclosure] = useState(false);
 
-  const sendMessage = useCallback(async (text: string) => {
+  const sendMessage = useCallback(async (text: string, displayText?: string) => {
     if (!text.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
-      content: text.trim(),
+      content: (displayText ?? text).trim(),
     };
 
     setMessages((prev) => {

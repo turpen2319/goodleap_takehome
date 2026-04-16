@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useChat } from "../hooks/useChat";
 import { ChatMessage } from "./ChatMessage";
+import type { ContextProduct } from "../App";
 
 const MIN_WIDTH = 280;
 const MAX_WIDTH = 720;
@@ -12,9 +13,11 @@ interface ChatPanelProps {
   onClose: () => void;
   panelWidth: number;
   onWidthChange: (w: number) => void;
+  contextProducts: ContextProduct[];
+  onRemoveContext: (id: string) => void;
 }
 
-export function ChatPanel({ onClose, panelWidth, onWidthChange }: ChatPanelProps) {
+export function ChatPanel({ onClose, panelWidth, onWidthChange, contextProducts, onRemoveContext }: ChatPanelProps) {
   const { messages, status, isLoading, showDisclosure, sendMessage } = useChat();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,7 +40,11 @@ export function ChatPanel({ onClose, panelWidth, onWidthChange }: ChatPanelProps
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-    sendMessage(input);
+    const userText = input.trim();
+    const prefix = contextProducts.length
+      ? contextProducts.map((p) => `[Re: ${p.name} (id: ${p.id})]`).join(" ") + " "
+      : "";
+    sendMessage(prefix + userText, userText);
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
@@ -155,8 +162,28 @@ export function ChatPanel({ onClose, panelWidth, onWidthChange }: ChatPanelProps
         {/* Input */}
         <form
           onSubmit={handleSubmit}
-          className="border-t border-gray-200 p-3 flex gap-2 items-end shrink-0"
+          className="border-t border-gray-200 p-3 shrink-0"
         >
+          {contextProducts.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {contextProducts.map((p) => (
+                <span
+                  key={p.id}
+                  className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                >
+                  {p.name}
+                  <button
+                    type="button"
+                    onClick={() => onRemoveContext(p.id)}
+                    className="text-blue-400 hover:text-blue-700 leading-none cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2 items-end">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -183,6 +210,7 @@ export function ChatPanel({ onClose, panelWidth, onWidthChange }: ChatPanelProps
           >
             Send
           </button>
+          </div>
         </form>
       </div>
     </>

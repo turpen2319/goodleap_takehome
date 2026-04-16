@@ -16,7 +16,14 @@ function formatTerms(months: number[]): string {
   return months.map((m) => (m >= 12 ? `${m / 12}yr` : `${m}mo`)).join(", ");
 }
 
-export function LoanProductCard({ product }: { product: LoanProduct }) {
+interface LoanProductCardProps {
+  product: LoanProduct;
+  onAskAI?: (product: LoanProduct) => void;
+  onRemoveContext?: (id: string) => void;
+  isInContext?: boolean;
+}
+
+export function LoanProductCard({ product, onAskAI, onRemoveContext, isInContext }: LoanProductCardProps) {
   return (
     <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -59,9 +66,27 @@ export function LoanProductCard({ product }: { product: LoanProduct }) {
         )}
       </div>
 
-      <button className="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-700 active:bg-gray-900 transition-colors cursor-pointer mt-auto">
-        Select
-      </button>
+      <div className="flex gap-2 mt-auto">
+        <button className="flex-1 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white hover:bg-gray-700 active:bg-gray-900 transition-colors cursor-pointer">
+          Select
+        </button>
+        {onAskAI && (
+          <button
+            onClick={() => isInContext && onRemoveContext ? onRemoveContext(product.id) : onAskAI!(product)}
+            className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1 ${
+              isInContext
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+            }`}
+            title={isInContext ? "Remove from chat context" : "Ask AI about this product"}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
+            </svg>
+            {isInContext ? "✓" : "+"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

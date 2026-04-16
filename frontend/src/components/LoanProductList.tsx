@@ -1,7 +1,14 @@
 import { useProducts } from "../hooks/useProducts";
 import { LoanProductCard } from "./LoanProductCard";
+import type { LoanProduct } from "../types";
 
-export function LoanProductList() {
+interface LoanProductListProps {
+  onAskAI?: (product: LoanProduct) => void;
+  onRemoveContext?: (id: string) => void;
+  contextProductIds?: Set<string>;
+}
+
+export function LoanProductList({ onAskAI, onRemoveContext, contextProductIds }: LoanProductListProps) {
   const { products, loading, error } = useProducts();
 
   if (loading) return <p className="text-gray-500">Loading products...</p>;
@@ -10,7 +17,13 @@ export function LoanProductList() {
   return (
     <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))" }}>
       {products.map((product) => (
-        <LoanProductCard key={product.id} product={product} />
+        <LoanProductCard
+          key={product.id}
+          product={product}
+          onAskAI={onAskAI}
+          onRemoveContext={onRemoveContext}
+          isInContext={contextProductIds?.has(product.id)}
+        />
       ))}
     </div>
   );
