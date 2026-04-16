@@ -59,4 +59,17 @@ export const loanProducts: LoanProduct[] = [
       "Specialized roofing loan with a 6-month same-as-cash promotional period. If paid in full within 6 months, no interest is charged. Otherwise, standard rates apply for the full term. Covers full roof replacements, repairs, and solar roof integrations.",
     eligibleStates: ["CA", "TX", "FL", "AZ", "CO", "NY"],
   },
+  {
+    id: "roofing-essential",
+    name: "Roofing Essential",
+    type: "roofing",
+    aprRange: { min: 6.99, max: 13.99 },
+    termMonths: [36, 60, 84, 120],
+    maxAmount: 40000,
+    description:
+      "Entry-level roofing loan for smaller replacements and repairs. Fixed monthly payments with no promotional period and no prepayment penalties. Streamlined application process.",
+    eligibleStates: [
+      "CA", "TX", "FL", "AZ", "NV", "CO", "NY", "NJ", "PA", "OH", "IL",
+    ],
+  },
 ];

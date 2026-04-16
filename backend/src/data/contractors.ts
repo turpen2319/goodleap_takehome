@@ -12,14 +12,23 @@ export const contractors: Contractor[] = [
     companyName: "SunPower Installations",
     contactName: "Maria Garcia",
     licensedStates: ["CA", "AZ", "NV"],
-    availableProductIds: ["solar-plus-25", "solar-promo-12", "roofing-premium"],
+    availableProductIds: [
+      "solar-plus-25",
+      "solar-promo-12",
+      "roofing-premium",
+      "roofing-essential",
+    ],
   },
   {
     id: "c2",
     companyName: "GreenHome Builders",
     contactName: "James Chen",
     licensedStates: ["TX", "FL", "CO"],
-    availableProductIds: ["home-imp-standard", "roofing-premium"],
+    availableProductIds: [
+      "home-imp-standard",
+      "roofing-premium",
+      "roofing-essential",
+    ],
   },
   {
     id: "c3",
@@ -31,6 +40,7 @@ export const contractors: Contractor[] = [
       "solar-promo-12",
       "home-imp-standard",
       "roofing-premium",
+      "roofing-essential",
     ],
   },
 ];

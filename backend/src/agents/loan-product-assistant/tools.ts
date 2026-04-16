@@ -54,7 +54,7 @@ export function createCalculateMonthlyPayment(contractorId: string) {
     "Calculate estimated monthly payments for a loan product given a loan amount. Returns payment breakdowns across all available terms using the product's mid-range APR.",
     {
       product_id: z
-        .enum(["solar-plus-25", "solar-promo-12", "home-imp-standard", "roofing-premium"])
+        .enum(loanProducts.map((p) => p.id) as [string, ...string[]])
         .describe("The loan product ID to calculate for"),
       loan_amount: z.number().positive().describe("The loan amount in dollars"),
     },
